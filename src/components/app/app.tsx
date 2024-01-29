@@ -67,8 +67,10 @@ export function App() {
     }
 
     const onClick = () => {
-      Howler.ctx.resume();
-      audio.current?.play();
+      if (audio.current?.paused) {
+        Howler.ctx.resume();
+        audio.current?.play();
+      }
     };
 
     ['mousedown', 'touchstart'].forEach(event =>
@@ -136,7 +138,7 @@ export function App() {
         </StoreConsumer>
       </SnackbarProvider>
 
-      <audio aria-hidden={true} muted ref={audio} src="" />
+      <audio aria-hidden={true} ref={audio} src="" />
     </>
   );
 }
