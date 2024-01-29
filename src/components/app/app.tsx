@@ -64,7 +64,6 @@ export function App() {
       const dest = ctx.createMediaStreamDestination();
       masterGain.connect(dest);
       audio.current.srcObject = dest.stream;
-      audio.current.volume = 0;
     }
 
     const onClick = () => {
