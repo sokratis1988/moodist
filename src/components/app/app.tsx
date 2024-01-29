@@ -64,7 +64,24 @@ export function App() {
       const dest = ctx.createMediaStreamDestination();
       masterGain.connect(dest);
       audio.current.srcObject = dest.stream;
+      audio.current.volume = 0;
     }
+
+    const onClick = () => {
+      if (audio.current?.paused) {
+        Howler.ctx.resume();
+        audio.current?.play();
+      }
+    };
+
+    ['mousedown', 'touchstart'].forEach(event =>
+      document.addEventListener(event, onClick),
+    );
+
+    return () =>
+      ['mousedown', 'touchstart'].forEach(event =>
+        document.removeEventListener(event, onClick),
+      );
   }, []);
 
   // useEffect(() => {
@@ -83,10 +100,10 @@ export function App() {
         title: 'Moodist',
       });
 
-      audio.current?.play();
+      // audio.current?.play();
       navigator.mediaSession.playbackState = 'playing';
     } else {
-      audio.current?.pause();
+      // audio.current?.pause();
       navigator.mediaSession.playbackState = 'paused';
     }
   }, [isPlaying]);
