@@ -60,8 +60,9 @@ export function App() {
 
   useEffect(() => {
     if (audio.current) {
-      const { ctx } = Howler;
+      const { ctx, masterGain } = Howler;
       const dest = ctx.createMediaStreamDestination();
+      masterGain.connect(dest);
       audio.current.srcObject = dest.stream;
     }
 
