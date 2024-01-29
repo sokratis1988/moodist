@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { BiSolidHeart } from 'react-icons/bi/index';
 import { Howler } from 'howler';
@@ -19,9 +19,14 @@ import { sounds } from '@/data/sounds';
 import type { Sound } from '@/data/types';
 
 export function App() {
+  const audio = useRef<HTMLAudioElement | null>(null);
+
   const categories = useMemo(() => sounds.categories, []);
 
   const favorites = useSoundStore(useShallow(state => state.getFavorites()));
+  // const play = useSoundStore(state => state.play);
+  // const pause = useSoundStore(state => state.pause);
+  const isPlaying = useSoundStore(state => state.isPlaying);
 
   const favoriteSounds = useMemo(() => {
     const favoriteSounds = categories
@@ -53,6 +58,52 @@ export function App() {
     return () => document.removeEventListener('visibilitychange', onChange);
   }, []);
 
+  useEffect(() => {
+    if (audio.current) {
+      const { ctx } = Howler;
+      const dest = ctx.createMediaStreamDestination();
+      audio.current.srcObject = dest.stream;
+    }
+
+    const onClick = () => {
+      Howler.ctx.resume();
+      audio.current?.play();
+    };
+
+    ['mousedown', 'touchstart'].forEach(event =>
+      document.addEventListener(event, onClick),
+    );
+
+    return () =>
+      ['mousedown', 'touchstart'].forEach(event =>
+        document.removeEventListener(event, onClick),
+      );
+  }, []);
+
+  // useEffect(() => {
+  //   try {
+  //     navigator.mediaSession.setActionHandler('play', play);
+  //     navigator.mediaSession.setActionHandler('pause', pause);
+  //     navigator.mediaSession.setActionHandler('stop', pause);
+  //   } catch (error) {
+  //     console.log('Media session is no supported yet');
+  //   }
+  // }, [play, pause]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Moodist',
+      });
+
+      // audio.current?.play();
+      navigator.mediaSession.playbackState = 'playing';
+    } else {
+      // audio.current?.pause();
+      navigator.mediaSession.playbackState = 'paused';
+    }
+  }, [isPlaying]);
+
   const allCategories = useMemo(() => {
     const favorites = [];
 
@@ -69,18 +120,22 @@ export function App() {
   }, [favoriteSounds, categories]);
 
   return (
-    <SnackbarProvider>
-      <StoreConsumer>
-        <Container>
-          <div id="app" />
-          <Buttons />
-          <Categories categories={allCategories} />
-        </Container>
+    <>
+      <SnackbarProvider>
+        <StoreConsumer>
+          <Container>
+            <div id="app" />
+            <Buttons />
+            <Categories categories={allCategories} />
+          </Container>
 
-        <ScrollToTop />
-        <Menu />
-        <SharedModal />
-      </StoreConsumer>
-    </SnackbarProvider>
+          <ScrollToTop />
+          <Menu />
+          <SharedModal />
+        </StoreConsumer>
+      </SnackbarProvider>
+
+      <audio aria-hidden={true} ref={audio} src="" />
+    </>
   );
 }
